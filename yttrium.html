@@ -209,57 +209,33 @@
             statusMsg.textContent = "Trying to find the code... don't rush me!";
             outputArea.value = "";
 
-            // We will try two different proxies to ensure one works
-            const proxies = [
-                {
-                    name: "AllOrigins",
-                    url: `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
-                    type: "json"
-                },
-                {
-                    name: "CORSProxy.io",
-                    url: `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-                    type: "text"
+            try {
+                // Using ThingProxy - Very reliable for GitHub Pages
+                const proxyUrl = `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(targetUrl)}`;
+                
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            ];
 
-            let success = false;
+                const sourceCode = await response.text();
 
-            for (const proxy of proxies) {
-                try {
-                    statusMsg.textContent = `Trying ${proxy.name}...`;
-                    const response = await fetch(proxy.url);
-                    
-                    if (!response.ok) continue;
-
-                    let sourceCode = "";
-                    if (proxy.type === "json") {
-                        const data = await response.json();
-                        sourceCode = data.contents;
-                    } else {
-                        sourceCode = await response.text();
-                    }
-
-                    if (sourceCode && sourceCode.length > 0) {
-                        outputArea.value = sourceCode;
-                        statusMsg.style.color = "var(--accent-color)";
-                        statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
-                        success = true;
-                        break;
-                    }
-                } catch (error) {
-                    console.log(`${proxy.name} failed:`, error);
-                    continue;
+                if (sourceCode) {
+                    outputArea.value = sourceCode;
+                    statusMsg.style.color = "var(--accent-color)";
+                    statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
+                } else {
+                    throw new Error("No content received");
                 }
-            }
-
-            if (!success) {
+            } catch (error) {
                 statusMsg.style.color = "#ff4d4d";
-                statusMsg.textContent = "Ugh! None of the proxies worked! The site is probably blocking us... or you're just unlucky.";
+                statusMsg.textContent = "Ugh! It didn't work! Maybe the site is blocking me... or maybe you're just unlucky.";
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Grab It Already!";
             }
-
-            btn.disabled = false;
-            btn.textContent = "Grab It Already!";
         }
     </script>
 </body>
