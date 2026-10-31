@@ -174,9 +174,9 @@
                 <h2>How to use it (Idiot's Guide)</h2>
                 <p>Since you probably can't figure it out yourself, here are some pictures.</p>
                 
-                <!-- Replace these src paths with your actual screenshots -->
+                <!-- Make sure to upload these images to an 'assets' folder in your repo -->
                 <img src="assets/yttriumimage.png" alt="Tutorial Step 1" class="tutorial-img">
-                <img src="assets/yttriumimage.png" alt="Tutorial Step 2" class="tutorial-img">
+                <img src="assets/yttriumimage2.png" alt="Tutorial Step 2" class="tutorial-img">
             </section>
         </main>
 
@@ -205,36 +205,53 @@
 
             btn.disabled = true;
             btn.textContent = "W-Wait a second...";
-            statusMsg.textContent = "";
+            statusMsg.textContent = "Trying to find the code... don't rush me!";
             outputArea.value = "";
 
-            try {
-                // Using corsproxy.io as an alternative proxy
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-                
-                const response = await fetch(proxyUrl);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+            // List of proxies to try in order
+            const proxies = [
+                `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+                `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+                `https://api.codetabs.org/v1/proxy?link=${encodeURIComponent(targetUrl)}`
+            ];
 
-                const data = await response.text();
+            let success = false;
 
-                if (data) {
-                    outputArea.value = data;
-                    statusMsg.style.color = "var(--accent-color)";
-                    statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
-                } else {
-                    throw new Error("No content received");
+            for (const proxy of proxies) {
+                try {
+                    const response = await fetch(proxy);
+                    
+                    if (!response.ok) continue;
+
+                    let data;
+                    // Handle different proxy response formats
+                    if (proxy.includes('allorigins')) {
+                        const json = await response.json();
+                        data = json.contents;
+                    } else {
+                        data = await response.text();
+                    }
+
+                    if (data && data.length > 0) {
+                        outputArea.value = data;
+                        statusMsg.style.color = "var(--accent-color)";
+                        statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
+                        success = true;
+                        break; // Stop trying other proxies if one works
+                    }
+                } catch (error) {
+                    console.log(`Proxy failed: ${proxy}`);
+                    continue;
                 }
-            } catch (error) {
-                statusMsg.style.color = "#ff4d4d";
-                statusMsg.textContent = "Ugh! It didn't work! Maybe the site is blocking me... or maybe you're just unlucky.";
-                console.error(error);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Grab It Already!";
             }
+
+            if (!success) {
+                statusMsg.style.color = "#ff4d4d";
+                statusMsg.textContent = "Ugh! None of the proxies worked! The site is probably hiding from us... or you're just unlucky.";
+            }
+
+            btn.disabled = false;
+            btn.textContent = "Grab It Already!";
         }
     </script>
 </body>
