@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yttrium </title>
+    <title>Yttrium</title>
     <style>
         :root {
             --bg-color: #ffffff;
@@ -209,50 +209,28 @@
             statusMsg.textContent = "Trying to find the code... don't rush me!";
             outputArea.value = "";
 
-            // List of 4 proxies to try in order
-            const proxies = [
-                { url: `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`, type: 'json' },
-                { url: `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`, type: 'text' },
-                { url: `https://api.codetabs.org/v1/proxy?link=${encodeURIComponent(targetUrl)}`, type: 'text' },
-                { url: `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(targetUrl)}`, type: 'text' }
-            ];
-
-            let success = false;
-
-            for (const proxy of proxies) {
-                try {
-                    const response = await fetch(proxy.url);
-                    
-                    if (!response.ok) continue;
-
-                    let data;
-                    if (proxy.type === 'json') {
-                        const json = await response.json();
-                        data = json.contents;
-                    } else {
-                        data = await response.text();
-                    }
-
-                    if (data && data.length > 0) {
-                        outputArea.value = data;
-                        statusMsg.style.color = "var(--accent-color)";
-                        statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
-                        success = true;
-                        break; 
-                    }
-                } catch (error) {
-                    console.log(`Proxy failed: ${proxy.url}`);
-                    continue;
+            try {
+                // Using the specific corsproxy.io format you requested
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+                
+                const response = await fetch(proxyUrl);
+                const sourceCode = await response.text();
+                
+                if (sourceCode) {
+                    outputArea.value = sourceCode;
+                    statusMsg.style.color = "var(--accent-color)";
+                    statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
+                } else {
+                    throw new Error("No content received");
                 }
-            }
-
-            if (!success) {
+            } catch (error) {
                 statusMsg.style.color = "#ff4d4d";
-                statusMsg.textContent = "Ugh! None of the proxies worked! The site is probably hiding from us... or you're just unlucky.";
+                statusMsg.textContent = "Ugh! It didn't work! Maybe the site is blocking me... or maybe you're just unlucky.";
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Grab It Already!";
             }
-
-            btn.disabled = false;
-            btn.textContent = "Grab It Already!";
         }
     </script>
 </body>
