@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yttrium - Source Grabber</title>
+    <title>Yttrium</title>
     <style>
         :root {
             --bg-color: #ffffff;
@@ -77,7 +77,6 @@
             text-decoration: underline;
         }
 
-        /* Input and Textarea styling to match the minimalist look */
         input[type="text"], 
         textarea {
             width: 100%;
@@ -128,6 +127,15 @@
             font-style: italic;
         }
 
+        .tutorial-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
         footer {
             margin-top: 4rem;
             padding-top: 1rem;
@@ -161,6 +169,15 @@
 
                 <textarea id="output" readonly placeholder="If I find anything, it'll show up here..."></textarea>
             </section>
+
+            <section id="tutorial">
+                <h2>How to use it (Idiot's Guide)</h2>
+                <p>Since you probably can't figure it out yourself, here are some pictures.</p>
+                
+                <!-- Replace these src paths with your actual screenshots -->
+                <img src="assets/yttriumimage.png" alt="Tutorial Step 1" class="tutorial-img">
+                <img src="assets/yttriumimage.png" alt="Tutorial Step 2" class="tutorial-img">
+            </section>
         </main>
 
         <footer>
@@ -192,14 +209,19 @@
             outputArea.value = "";
 
             try {
-                // Using allorigins.win as a CORS proxy
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                // Using corsproxy.io as an alternative proxy
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
                 
                 const response = await fetch(proxyUrl);
-                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-                if (data.contents) {
-                    outputArea.value = data.contents;
+                const data = await response.text();
+
+                if (data) {
+                    outputArea.value = data;
                     statusMsg.style.color = "var(--accent-color)";
                     statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
                 } else {
