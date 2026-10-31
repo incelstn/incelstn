@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yttrium</title>
+    <title>Yttrium </title>
     <style>
         :root {
             --bg-color: #ffffff;
@@ -174,10 +174,10 @@
                 <h2>How to use it (Idiot's Guide)</h2>
                 <p>Since you probably can't figure it out yourself, here are some pictures.</p>
                 
-                <!-- Make sure to upload these images to an 'assets' folder in your repo -->
-                <img src="assets/yttriumimage.png" alt="1" class="tutorial-img">
-                <img src="assets/yttriumimage2.png" alt="2" class="tutorial-img">
-                <img src="assets/yttriumimage3.png" alt="3" class="tutorial-img">
+                <!-- Make sure to upload these 3 images to an 'assets' folder in your repo -->
+                <img src="assets/yttriumimage1.png" alt="Tutorial Step 1" class="tutorial-img">
+                <img src="assets/yttriumimage2.png" alt="Tutorial Step 2" class="tutorial-img">
+                <img src="assets/yttriumimage3.png" alt="Tutorial Step 3" class="tutorial-img">
             </section>
         </main>
 
@@ -209,24 +209,24 @@
             statusMsg.textContent = "Trying to find the code... don't rush me!";
             outputArea.value = "";
 
-            // List of proxies to try in order
+            // List of 4 proxies to try in order
             const proxies = [
-                `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
-                `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-                `https://api.codetabs.org/v1/proxy?link=${encodeURIComponent(targetUrl)}`
+                { url: `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`, type: 'json' },
+                { url: `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`, type: 'text' },
+                { url: `https://api.codetabs.org/v1/proxy?link=${encodeURIComponent(targetUrl)}`, type: 'text' },
+                { url: `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(targetUrl)}`, type: 'text' }
             ];
 
             let success = false;
 
             for (const proxy of proxies) {
                 try {
-                    const response = await fetch(proxy);
+                    const response = await fetch(proxy.url);
                     
                     if (!response.ok) continue;
 
                     let data;
-                    // Handle different proxy response formats
-                    if (proxy.includes('allorigins')) {
+                    if (proxy.type === 'json') {
                         const json = await response.json();
                         data = json.contents;
                     } else {
@@ -238,10 +238,10 @@
                         statusMsg.style.color = "var(--accent-color)";
                         statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
                         success = true;
-                        break; // Stop trying other proxies if one works
+                        break; 
                     }
                 } catch (error) {
-                    console.log(`Proxy failed: ${proxy}`);
+                    console.log(`Proxy failed: ${proxy.url}`);
                     continue;
                 }
             }
