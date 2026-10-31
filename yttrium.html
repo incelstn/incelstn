@@ -162,7 +162,7 @@
 
             <section id="tool">
                 <label for="url-input" style="display:block; margin-bottom: 0.5rem; font-weight: 600;">The Link:</label>
-                <input type="text" id="url-input" placeholder="https://example.com">
+                <input type="text" id="url-input" placeholder="https://incelstn.is-an.ai/yttrium">
                 
                 <button id="grab-btn" onclick="fetchSource()">Grab It Already!</button>
                 <div id="status" class="status-msg"></div>
@@ -209,31 +209,57 @@
             statusMsg.textContent = "Trying to find the code... don't rush me!";
             outputArea.value = "";
 
-            try {
-                // Using AllOrigins (JSON format) - Very stable and free
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-                
-                const response = await fetch(proxyUrl);
-                const data = await response.json();
-                
-                // AllOrigins returns the actual source code inside the 'contents' property
-                const sourceCode = data.contents;
-
-                if (sourceCode) {
-                    outputArea.value = sourceCode;
-                    statusMsg.style.color = "var(--accent-color)";
-                    statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
-                } else {
-                    throw new Error("No content received");
+            // We will try two different proxies to ensure one works
+            const proxies = [
+                {
+                    name: "AllOrigins",
+                    url: `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+                    type: "json"
+                },
+                {
+                    name: "CORSProxy.io",
+                    url: `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+                    type: "text"
                 }
-            } catch (error) {
-                statusMsg.style.color = "#ff4d4d";
-                statusMsg.textContent = "Ugh! It didn't work! Maybe the site is blocking me... or maybe you're just unlucky.";
-                console.error(error);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Grab It Already!";
+            ];
+
+            let success = false;
+
+            for (const proxy of proxies) {
+                try {
+                    statusMsg.textContent = `Trying ${proxy.name}...`;
+                    const response = await fetch(proxy.url);
+                    
+                    if (!response.ok) continue;
+
+                    let sourceCode = "";
+                    if (proxy.type === "json") {
+                        const data = await response.json();
+                        sourceCode = data.contents;
+                    } else {
+                        sourceCode = await response.text();
+                    }
+
+                    if (sourceCode && sourceCode.length > 0) {
+                        outputArea.value = sourceCode;
+                        statusMsg.style.color = "var(--accent-color)";
+                        statusMsg.textContent = "T-There! I got it for you. Don't think I did it because I like you!";
+                        success = true;
+                        break;
+                    }
+                } catch (error) {
+                    console.log(`${proxy.name} failed:`, error);
+                    continue;
+                }
             }
+
+            if (!success) {
+                statusMsg.style.color = "#ff4d4d";
+                statusMsg.textContent = "Ugh! None of the proxies worked! The site is probably blocking us... or you're just unlucky.";
+            }
+
+            btn.disabled = false;
+            btn.textContent = "Grab It Already!";
         }
     </script>
 </body>
