@@ -210,12 +210,15 @@
             outputArea.value = "";
 
             try {
-                // Using the specific corsproxy.io format you requested
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+                // Using AllOrigins (JSON format) - Very stable and free
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
                 
                 const response = await fetch(proxyUrl);
-                const sourceCode = await response.text();
+                const data = await response.json();
                 
+                // AllOrigins returns the actual source code inside the 'contents' property
+                const sourceCode = data.contents;
+
                 if (sourceCode) {
                     outputArea.value = sourceCode;
                     statusMsg.style.color = "var(--accent-color)";
